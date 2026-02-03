@@ -1,0 +1,3 @@
+LOAD_P1 test_files/data/lab1_canada.csv
+PRINT_P1
+EXIT

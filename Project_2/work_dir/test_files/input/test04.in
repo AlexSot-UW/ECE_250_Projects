@@ -1,0 +1,5 @@
+LOAD_P1 test_files/data/lab1_canada.csv
+UPDATE_P1 1990 50
+PRINT_P1
+UPDATE_P1 2059 100
+EXIT
