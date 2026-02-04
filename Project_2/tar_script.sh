@@ -21,6 +21,6 @@ TARGET_DIR="$BASE_ZIP_DIR/v$NEXT_VER"
 mkdir -p "$TARGET_DIR"
 
 tar -czvf "$TARGET_DIR/assotnik_p2.tar.gz" -C "$SOURCE_DIR" \
-    main.cpp Time_Series.cpp Time_Series.hpp assotnik_design_p1.txt passcode.txt Makefile
+    main.cpp Country_Data.cpp Country_Data.hpp Time_Series.cpp Time_Series.hpp assotnik_design_p2.txt passcode.txt Makefile
 
 echo "Archive created in: $TARGET_DIR"

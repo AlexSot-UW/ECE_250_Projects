@@ -1,4 +1,0 @@
-LOAD_P1 test_files/data/lab1_known_mean.csv
-MEAN_P1
-FIT_P1
-EXIT

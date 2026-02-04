@@ -5,8 +5,6 @@
 #include <cassert>
 #include "Time_Series.hpp"
 
-// isInArray<int>(year, years, array_size)
-
 Time_Series::Time_Series()
     : MIN_ARRAY_SIZE(2),
       FIRST_YEAR(1960),
@@ -26,7 +24,7 @@ Time_Series::Time_Series()
 *              Sequentially loads and stores all data from csv file, including invalid data.
 * Input:       std::string: filename
 */
-void Time_Series::load(std::string filename){
+void Time_Series::load(std::istringstream& input_line){
     // Deletes array, and reinitializes all variables related to file size/capacity.
     delete[] years; 
     years = nullptr;
@@ -40,18 +38,17 @@ void Time_Series::load(std::string filename){
     years = new int[array_size];
     data = new double[array_size];
 
-    std::ifstream file(filename);
     std::stringstream ss;
     std::string line;
 
     // Reads first 4 lines of csv file.
-    std::getline(file, line, ',');
-    std::getline(file, line, ',');
-    std::getline(file, series_name, ',');
-    std::getline(file, series_code, ',');
+    std::getline(input_line, line, ',');
+    std::getline(input_line, line, ',');
+    std::getline(input_line, series_name, ',');
+    std::getline(input_line, series_code, ',');
     
     // Reads data stored in csv and stores it in the arrays. Reads until runs out of file space.
-    while (std::getline(file, line, ',')){
+    while (std::getline(input_line, line, ',')){
             std::stringstream ss(line);
 
             double data_point = std::stod(ss.str());
@@ -461,6 +458,31 @@ int Time_Series::returnYearIdx(int year){
         mid = (end + start) / 2;
     }
     return mid;
+}
+
+std::string Time_Series::getSeriesName(){
+    return series_name;
+}
+
+std::string Time_Series::getSeriesCode(){
+    return series_code;
+}
+
+std::size_t Time_Series::getArraySize(){
+    return array_size;
+}
+
+unsigned int Time_Series::getLastIdx(){
+    return last_idx;
+}  
+
+bool Time_Series::hasValidData(){
+    for (unsigned int i = 0; i < last_idx; i++){
+        if (last_idx != MISSING_DATA_INDICATOR){
+            return true;
+        }
+    }
+    return false;
 }
 
 Time_Series::~Time_Series(){

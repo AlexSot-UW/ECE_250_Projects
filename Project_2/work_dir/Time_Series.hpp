@@ -3,16 +3,16 @@
 #include <string>
 #include <sstream>
 
-#ifndef MYCLASS_H
-#define MYCLASS_H
+#ifndef TIME_SERIES_H
+#define TIME_SERIES_H
 
 
 class Time_Series {
 private:
-    const int MIN_ARRAY_SIZE;
-    const int FIRST_YEAR;
-    const int LAST_YEAR;
-    const double MISSING_DATA_INDICATOR;
+    int MIN_ARRAY_SIZE;
+    int FIRST_YEAR;
+    int LAST_YEAR;
+    double MISSING_DATA_INDICATOR;
 
     std::string series_name;
     std::string series_code;
@@ -27,7 +27,7 @@ public:
     Time_Series();
     ~Time_Series();
     
-    void load(std::string filename);
+    void load(std::istringstream& input_line);
     bool addSeriesElement(int year, double datum);
     void addSeriesLoad(int year, double datum);
     void removeSeriesElement(int idx);
@@ -42,5 +42,12 @@ public:
     bool best_fit(double &m, double &b);
     void insertSeriesElement(int year, double data, size_t element_idx);
     int returnYearIdx(int year);
+
+// P2 New Methods:
+    std::string getSeriesName();
+    std::string getSeriesCode();
+    std::size_t getArraySize();
+    unsigned int getLastIdx(); 
+    bool hasValidData();   
 };
 #endif
