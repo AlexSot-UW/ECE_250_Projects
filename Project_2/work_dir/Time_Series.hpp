@@ -49,5 +49,6 @@ public:
     std::size_t getArraySize();
     unsigned int getLastIdx(); 
     bool hasValidData();   
+    Time_Series& operator=(const Time_Series& other);
 };
 #endif

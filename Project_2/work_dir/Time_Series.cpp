@@ -41,12 +41,12 @@ void Time_Series::load(std::istringstream& input_line){
     std::stringstream ss;
     std::string line;
 
-    // Reads first 4 lines of csv file.
-    std::getline(input_line, line, ',');
-    std::getline(input_line, line, ',');
+    // Reads first 2 entries of line.
     std::getline(input_line, series_name, ',');
+    // std::cout << series_name << std::endl;
     std::getline(input_line, series_code, ',');
-    
+    // std::cout << series_code << std::endl;
+
     // Reads data stored in csv and stores it in the arrays. Reads until runs out of file space.
     while (std::getline(input_line, line, ',')){
             std::stringstream ss(line);
@@ -58,7 +58,7 @@ void Time_Series::load(std::istringstream& input_line){
             ss >> datum;
             addSeriesLoad(year, datum);
     }
-    std::cout << "success" << std::endl;
+    // std::cout << series_code << std::endl;
 }
 
 /*
@@ -484,6 +484,39 @@ bool Time_Series::hasValidData(){
     }
     return false;
 }
+
+Time_Series& Time_Series::operator=(const Time_Series& other){
+    if (this == &other) {
+        return *this;
+    }
+
+    series_name = other.series_name;
+    series_code = other.series_code;
+    array_size  = other.array_size;
+    last_idx    = other.last_idx;
+
+    int* new_years = nullptr;
+    double* new_data = nullptr;
+
+    if (other.array_size > 0) {
+        new_years = new int[other.array_size];
+        new_data  = new double[other.array_size];
+
+        for (unsigned int i = 0; i < other.last_idx; i++) {
+            new_years[i] = other.years[i];
+            new_data[i]  = other.data[i];
+        }
+    }
+
+    delete[] years;
+    delete[] data;
+
+    years = new_years;
+    data  = new_data;
+
+    return *this;
+}
+
 
 Time_Series::~Time_Series(){
     delete[] years;

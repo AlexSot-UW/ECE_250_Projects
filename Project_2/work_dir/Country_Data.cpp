@@ -17,6 +17,7 @@ Country_Data::Country_Data():
 {}
 
 void Country_Data::load(std::string c_name){
+    delete[] country_data;
     country_data = nullptr;
     country_name = c_name;
 
@@ -33,22 +34,36 @@ void Country_Data::load(std::string c_name){
 
     checkAndResizeArray();
 
-    while (std::getline(file, line) && !end_flag){
+    // std::cout << (std::getline(file, line) && true) << std::endl;
+
+    while (std::getline(file, line)){
         std::istringstream iss(line);
 
-        std::string prev_name = name;
-
         std::getline(iss, name, ',');
-        std::getline(iss, country_code, ',');
-
-        end_flag = (prev_name == country_name) && (name != country_name);
-
-        if (!end_flag && name == country_name) {
+        if (name == country_name){
+            std::getline(iss, country_code, ',');
             addSeries(iss);
+            break;
         }
     }
 
+    while (std::getline(file, line)){
+        std::istringstream iss(line);
+
+        std::getline(iss, name, ',');
+
+        if (name != country_name){
+            break;
+        }
+
+        std::getline(iss, country_code, ',');
+
+        addSeries(iss);
+    }
+
     file.close();
+
+    std::cout << "success" << std::endl;
 }
 
 void Country_Data::addSeries(std::istringstream& series){
@@ -58,11 +73,11 @@ void Country_Data::addSeries(std::istringstream& series){
     tseries.load(series);
 
     country_data[last_idx] = tseries;
+
+    last_idx++;
 }
 
 void Country_Data::listSeries(){
-    std::cout << country_name << " " << country_code;
-
     for (unsigned int i = 0; i < last_idx; i++){
         std::cout << " " << country_data[i].getSeriesName();
     }
@@ -72,7 +87,7 @@ void Country_Data::addSeriesElement(std::string series_code, int year, double da
     int seriesIdx = returnSeriesIdx(series_code);
 
     if (seriesIdx < 0){
-        std::cout << "failure";
+        std::cout << "failure" << std::endl;
     } else {
         country_data[seriesIdx].addSeriesElement(year, datum);
     }
@@ -82,7 +97,7 @@ void Country_Data::update(std::string series_code, int year, double datum){
     int seriesIdx = returnSeriesIdx(series_code);
 
     if (seriesIdx < 0){
-        std::cout << "failure";
+        std::cout << "failure" << std::endl;
     } else {
         country_data[seriesIdx].addSeriesElement(year, datum);
     }
@@ -91,8 +106,10 @@ void Country_Data::update(std::string series_code, int year, double datum){
 void Country_Data::printSeries(std::string series_code){
     int seriesIdx = returnSeriesIdx(series_code);
 
+    // std::cout << country_name << std::endl;
+
     if (seriesIdx < 0){
-        std::cout << "failure";
+        std::cout << "failure" << std::endl;
     } else {
         country_data[seriesIdx].print();
     }
@@ -102,10 +119,9 @@ void Country_Data::deleteSeries(std::string series_code){
     int seriesIdx = returnSeriesIdx(series_code);
 
     if (seriesIdx < 0){
-        std::cout << "failure";
+        std::cout << "failure" << std::endl;
     } else {
-        delete &country_data[seriesIdx];
-        
+        std::cout << "success" << std::endl;
         for (int i = seriesIdx + 1; i < last_idx; i++){
             country_data[i - 1] = country_data[i];
         }
@@ -125,14 +141,14 @@ void Country_Data::seriesWithBiggestMean(){
         }
     }
 
-    std::cout << series_code;
+    std::cout << series_code << std::endl;
 }
 
 void Country_Data::seriesSizeCapacity(std::string series_code){
     int seriesIdx = returnSeriesIdx(series_code);
 
     if (seriesIdx < 0){
-        std::cout << "failure";
+        std::cout << "failure" << std::endl;
     } else {
         if (country_data[seriesIdx].hasValidData()){
             std::cout << "size is " << country_data[seriesIdx].getArraySize() << " capacity is " << country_data[seriesIdx].getLastIdx();    
@@ -143,7 +159,9 @@ void Country_Data::seriesSizeCapacity(std::string series_code){
 }
 
 int Country_Data::returnSeriesIdx(std::string series_code){
+    // std::cout << last_idx << std::endl;
     for (unsigned int i = 0; i < last_idx; i++){
+        // std::cout << country_data[i].getSeriesCode() << " vs " << series_code << std::endl;
         if (country_data[i].getSeriesCode() == series_code){
             return i;
         }
