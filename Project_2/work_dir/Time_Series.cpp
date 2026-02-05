@@ -206,6 +206,7 @@ bool Time_Series::is_monotonic() {
     for (unsigned int i = k + 1; i < last_idx; i++) {
         if (data[i] == MISSING_DATA_INDICATOR) continue;
 
+        // If series is non decreasing, or decreasing, allows you to check both monotonic cases.
         if (nonDecreasing) {
             if (data[i] < prev) {
                 std::cout << "series is not monotonic" << std::endl;

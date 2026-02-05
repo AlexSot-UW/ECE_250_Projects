@@ -16,46 +16,59 @@ Country_Data::Country_Data():
     last_idx(0)
 {}
 
+/*
+* Description: Load csv file series data for a country.
+*              Loads every line of time series data associated with a country.
+* Input:       std::string: c_name (name of country)
+*/
 void Country_Data::load(std::string c_name){
+    // Deallocates country_data array to prevent memory leaks.
     delete[] country_data;
     country_data = nullptr;
     country_name = c_name;
+    country_code = "";
 
+    // Creates new file stream/string variables which will be used to read from file/stored important data.
     std::ifstream file(DATA_FILE_NAME);
     std::string line;
     std::string name = "";
 
-    bool end_flag = false;
-
+    // Resets array capacity/size variables
     last_idx = 0;
     array_size = MIN_ARRAY_SIZE;
 
+    // Allocates new array of Time_Series objects which will store all of the data.
     country_data = new Time_Series[array_size];
 
-    // std::cout << (std::getline(file, line) && true) << std::endl;
-
+    // Loops until the first series with the correct country name is found.
     while (std::getline(file, line)){
         std::istringstream iss(line);
 
         std::getline(iss, name, ',');
+        // Checks if series name is equal to the country name, if it is then save country code, add the series and break the loop.
         if (name == country_name){
             std::getline(iss, country_code, ',');
+            
+            // Add series object to the class array.
             addSeries(iss);
             break;
         }
     }
 
+    // Loops until the first series with the incorrect country name is found.
     while (std::getline(file, line)){
         std::istringstream iss(line);
 
         std::getline(iss, name, ',');
-
+        
+        // Checks if series name is equal to the country name, if it isnt then break the loop.
         if (name != country_name){
             break;
         }
 
         std::getline(iss, country_code, ',');
-
+        
+        // Add series object to the class array.
         addSeries(iss);
     }
 
@@ -64,28 +77,48 @@ void Country_Data::load(std::string c_name){
     std::cout << "success" << std::endl;
 }
 
+
+/*
+* Description: Adds a new series to array of country_data, and loads data into it using the load method.
+* Input:       std::istringstream&: series (the line of data read from the csv file, which will then be processed by the load method of the Time_Series class, thus saving data into the object).
+*/
 void Country_Data::addSeries(std::istringstream& series){
+    // Checks if array needs to be resized or not before addign new element.
     checkAndResizeArray();
 
+    // Declares new Time_Series variable, and calls the laod method on it thus loading all the data into it.
     Time_Series tseries;
     tseries.load(series);
 
+    // Adds time series object into the country_data array.
     country_data[last_idx] = tseries;
 
+    // Increases array size.
     last_idx++;
 }
 
+/*
+* Description: List all the series, preceded by country name and country code.
+*/
 void Country_Data::listSeries(){
+    // Print country name and country code.
     std::cout << country_name << " " << country_code;
+
+    // Loops through array of time series, and print out their names.
     for (unsigned int i = 0; i < last_idx; i++){
         std::cout << " " << country_data[i].getSeriesName();
     }
     std::cout << "" << std::endl;
 }
 
+/*
+* Description: Add a element to series, specified by series code, and whether or not operation is successful, print to console, either success or failure.
+*/
 void Country_Data::addSeriesElement(std::string series_code, int year, double datum){
+    // Returns series idx (-1 if not found)
     int seriesIdx = returnSeriesIdx(series_code);
 
+    // Check if series idx is less then zero (print failure if it is, otherwise add it to series).
     if (seriesIdx < 0){
         std::cout << "failure" << std::endl;
     } else {
@@ -106,10 +139,10 @@ void Country_Data::addSeriesElement(std::string series_code, int year, double da
 *              Print success if series element exists, and data value above 0.
 */
 void Country_Data::update(std::string series_code, int year, double datum){
-    // Returns index of series.
+    // Returns index of series. Returns -1 to signify series not found in that array.
     int seriesIdx = returnSeriesIdx(series_code);
 
-    //
+    // Checks if series in array, if it is then calls the update method on it.
     if (seriesIdx < 0){
         std::cout << "failure" << std::endl;
     } else {
@@ -162,14 +195,27 @@ void Country_Data::deleteSeries(std::string series_code){
     checkAndResizeArray();
 }
 
+/*
+* Description: Prints out the series code, of the series which has the largest mean out of all of the series stored inside of the time series array.
+*/
 void Country_Data::seriesWithBiggestMean(){
+    // If country has no series then automatically print failure.
+    if (last_idx == 0) {
+        std::cout << "failure" << std::endl;
+        return;
+    }
+
+    // Set the output equal to failure as default
     std::string series_code = "failure";
+
+    // Initalize the max/curr variables which will store mean values throughout the loop.
     double max;
     
     double curr = country_data[0].mean();
     
     unsigned int counter = 1;
 
+    // Loops until finds the first mean that isnt zero (first series with valid data).
     while (curr == 0 && counter < last_idx){
         curr = country_data[counter].mean();
         counter++;
@@ -177,17 +223,24 @@ void Country_Data::seriesWithBiggestMean(){
 
     max = curr;
 
+    // Loops through the time series array and thus finds the maximum mean value, by comparing current maximum with current mean.
     for (unsigned int i = 0; i < last_idx; i++){
-        curr = country_data[i].mean();
+        curr = country_data[i].mean(); // Sets curr equal to current mean.
+
+        // Checks if this new series mean is greater then the maximum.
         if (curr > max) {
             max = curr;
             series_code = country_data[i].getSeriesCode();
         }
     }
 
+    // Prints out the series code of the series with the largest mean.
     std::cout << series_code << std::endl;
 }
 
+/*
+* Description: Prints out the series code, of the series which has the largest mean out of all of the series stored inside of the time series array.
+*/
 void Country_Data::seriesSizeCapacity(std::string series_code){
     int seriesIdx = returnSeriesIdx(series_code);
 
