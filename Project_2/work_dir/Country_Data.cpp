@@ -239,14 +239,17 @@ void Country_Data::seriesWithBiggestMean(){
 }
 
 /*
-* Description: Prints out the series code, of the series which has the largest mean out of all of the series stored inside of the time series array.
+* Description: Prints out the capacity/array size of series specified by series code.
 */
 void Country_Data::seriesSizeCapacity(std::string series_code){
+    // Returns index of series (-1 if doesnt exist)
     int seriesIdx = returnSeriesIdx(series_code);
 
+    // Checks if series exists, if it doesn then commits to logic, otherwise prints failure.
     if (seriesIdx < 0){
         std::cout << "failure" << std::endl;
     } else {
+        // Check if series has valid data, if not then prints default values of 0/2 for array size/capacity.
         if (country_data[seriesIdx].hasValidData()){
             std::cout << "size is " <<  country_data[seriesIdx].getLastIdx() << " capacity is " <<  country_data[seriesIdx].getArraySize() << std::endl;    
         } else {
@@ -255,7 +258,11 @@ void Country_Data::seriesSizeCapacity(std::string series_code){
     }
 }
 
+/*
+* Description: Returns index of series, specified by series_code (index inside the global country_data array).
+*/
 int Country_Data::returnSeriesIdx(std::string series_code){
+    // Loops through the country_data array until it finds a series with a matching code, otherwise it outputs -1 if series not found.
     for (unsigned int i = 0; i < last_idx; i++){
         if (country_data[i].getSeriesCode() == series_code){
             return i;

@@ -1,85 +1,39 @@
 CLASS DESIGN
-I created juts one class Time_Series. This class represents and manages a time-indexed dataset of (year, value) pairs. It provides all the necessary utility operations on that dataset, including loading, printing, adding, updating, and computing different important values related to the data (such as mean, best fit function etc.). This is important because the project focuses on time series operations. Grouping the data and the rules for handling it into one class results in a clean and logical design.
-I also used private variables so that outside classes or programs could not edit critical variables such as last_idx, and array_size, and the arrays themselves directly, thus fulfilling encapsulation. Only methods from this class can directly edit these private variables. Finally, the class methods are all public, and this is because these functions need to be accessible by outside programs in order for them to have certain functionality.
-Going deeper into individual method functionality, only one method is used to actually resize the array when needed, the resizeSeries() method, which is called when the checkAndResize method detects that the resize conditions have been met. Therefore checkAndResize acts as a method wrapper which can be called from anywhere inside the code to first check if array size is correct and then resize it if necessary. The last_idx method and array_size variables keep track of array capacity and total storage allocated to it. All other functions, such as insertSeriesElement, and removeSeriesElement, merely rearrange the values in the array.
-ALTERNATIVES AND JUSTIFICATION
-I initially had a lot more helper methods which turned out to be redundant. Additionally, I had separate template methods which individually resized very array. I later realised I didn’t need such generic functions, and such high levels of abstraction so I removed these from my code, and replaced them with more consolidated versions that, iterate on both arrays contained inside the series at the same time. The main reason the previous solution was invalid, is because in order to have two separate functions iterating on the array, that would have forced me to check array size twice and changed that variable and last_idx variable multiple times. By consolidating everything into one method, I ensured that there was one source of truth for the program. I did this with all the other methods too. This minimized the amount of places where I had to change the array_capacity variable and array_size variables, which vastly improved the debugging speed of the program, as well as also eliminated valgrind errors. Where initially, I had a lot of variables to keep track of everything, I was able to water that down to have a few essential variables and methods that interacted with the array.
+For example, in Project 2, I used two main classes: Country_Data and Time_Series. Each class is a separate concept in the problem domain and is used to provide a specific set of functionalities. The separation into two classes is a deliberate approach to ensure that the program is scalable, modular, and maintainable. 
+
+The Country_Data class is used to represent a country and its collection of Time_Series objects. The main responsibility of this class is not to manipulate any data point, but to store, organize, add, delete, and query entire time series. On the other hand, the Time_Series class is used to represent a time series. The separation into two classes is a deliberate approach to ensure that the program is scalable, modular, and maintainable. 
+
+In both classes, encapsulation is strictly adhered to. For example, all important data member variables, such as dynamic arrays, capacity, and size variables, including array_size and last_idx, are private. This is a deliberate approach to ensure that these variables cannot be modified from outside the class, which would otherwise result in memory corruption. 
+
+The public interfaces of these two classes are minimal but complete. The methods are only exposed if they are needed by the program’s commands. The helper functions are not supposed to be called from outside the class, like the resizing functions, and are therefore kept as private members.
+
+The most important design decision made in these two classes is the use of dynamic arrays instead of STL’s data structures. The decision is deliberate, as it is an important part of the program’s requirements.
+
+The design decision made in the implementation of the Time_Series class is that all resizing is done by a single function, resizeSeries, which is only called by another function, checkAndResizeSeries. This is the same design decision made in Project 1, where there is exactly one place where resizing of an array is done in the code. The function checkAndResizeSeries is a wrapper function that can be safely called from anywhere before insertions and deletions, as there is only one place where resizing is done.
+
+
+Similarly, in the Country_Data class, all the resizing of the array of Time_Series objects is performed within the function resizeArray, which is only called by checkAndResizeArray. This prevents duplicated code in the resizing of the array. Another important design choice was the implementation of the deep copy assignment operator for the Time_Series objects. This is because the Time_Series objects are stored in an array, which is dynamically resized in the ADD_P2 and DELETE_P2 operations. If the assignment operator were not implemented, the objects would have shared pointers, leading to double-free issues. Finally, project 2 required some additions compared to Project 1. The main additions were as follows: getter methods to get private variables stored inside of Time_Series (series name, series code, array size, and array capacity) in order to not break the principle of encapsulation for private variables, as well as I also overloaded the assignment operator to allow for straightforward copying of data from one object to another. Finally I included a method that allows program to check if the series has valid data or not, necessary for the mean method, where it must be ascertained early if series does have valid data or nto.
+
+ALTERNATIVES CONSIDERED AND REJECTED
+
+In my development process, I first started with a greater number of helper functions, such as distinct resizing routines for each of the internal arrays. I also explored more general-purpose resizing functions using templates. However, this made my code even more complex and resulted in a greater number of points where the variables related to the size and capacity of the arrays were being altered. This particular design had several issues, such as the duplication of resizing code, which required multiple checks of capacity and modifications to last_idx and array_size in multiple locations. This made my code more prone to errors, more difficult to debug, and resulted in memory bugs that were identified by Valgrind. This was actually really similar to the issues I had in project 1 where I made my code too complicated and that led to many memory errors, and slow debugging (again too many helper funcitons). I finally abandoned this design in favor of a more centralized approach to resizing, with a single routine for each class. This ensured that there was only one source of truth for the resizing and capacity-related operations, making my code less prone to duplication and memory bugs, and also making it more reliable and maintainable.
+
 RUNTIME ANALYSIS
-N is the number of years currently stored in the time series, or in the code: last_idx.
-We do the runtime analysis in terms of N.
 
-UPDATE command worst-case runtime is O(N):
-UPDATE is implemented by:
-void Time_Series::update(int year, double datum){
-int idx = returnYearIdx(year);
-if (idx < 0 || years[idx] != year){
-if (datum < 0){
-removeSeriesElement(idx);
-...
-} else {
-data[idx] = datum;
-...
-}
-} else {
-...
-}
-}
-Step-by-step analysis:
-     returnYearIdx(year)
-This function performs a binary search over the sorted years array. Each loop iteration halves the search range, and therefore its worst case runtime is O(log N).
-    (datum >= 0)
-The operation data[idx] = datum is a single array write. Therefore O(1)
-    (datum < 0)
-Update method calls removeSeriesElement(idx), which shifts all elements after idx one position left:
-for (int i = idx + 1; i < last_idx; i++){
-years[i - 1] = years[i];
-data[i - 1] = data[i];
-}
-In the worst case, idx = 0 (removing the first element), so the loop runs from i = 1 to i = N-1. That performs N-1 iterations, each doing O(1) work. This in total means N operations are executed, thus O(N) time.
-Putting it together:
-Therefore out of all of these branches, the wors case time complexity is:
-O(log N) + O(N) + O(1) = O(N)
-Therefore, the UPDATE command has worst-case runtime O(N).
+Let N denote the number of time series stored in the Country_Data object, and let m denote the number of data points in a single Time_Series.
 
-MONOTONIC command best-case runtime is O(1)
-MONOTONIC is implemented by:
-bool Time_Series::is_monotonic() {
-if (last_idx == 0) { ... return false; }
-    unsigned int j = 0;
-    while (j < last_idx && data[j] == MISSING_DATA_INDICATOR) j++;
+DELETE_P2 command worst-case runtime: O(N + m)
 
-    if (j == last_idx) { ... return false; }
+DELETE_P2 is implemented by Country_Data::deleteSeries. The method first locates the target series using returnSeriesIdx, which performs a linear scan over the array of N time series. This search takes O(N) time in the worst case.
 
-    unsigned int k = j + 1;
-    while (k < last_idx && data[k] == MISSING_DATA_INDICATOR) k++;
+If the series exists, all subsequent Time_Series objects are shifted left by one position to preserve array contiguity. Each shift invokes the Time_Series copy assignment operator, which performs a deep copy of up to m data points. Since only one series is deleted and the total data copied is bounded by the size of a single series, this contributes O(m) time.
 
-    if (k == last_idx) { ... return true; }
+Combining these steps, the worst-case runtime of DELETE_P2 is O(N + m).
 
-    bool nonDecreasing = (data[k] >= data[j]);
-    double prev = data[k];
+ADD_P2 command worst-case runtime: O(N + m)
 
-    for (unsigned int i = k + 1; i < last_idx; i++) {
-        if (data[i] == MISSING_DATA_INDICATOR) continue;
-        if (nonDecreasing) {
-            if (data[i] < prev) { ... return false; }
-        } else {
-            if (data[i] > prev) { ... return false; }
-        }
-        prev = data[i];
-    }
+ADD_P2 implemented by Country_Data::addSeries. Before inserting, the method may resize the country_data array. In the worst case, this requires copying all N existing Time_Series objects, resulting in O(N) time.
 
-    ... return true;
-}
-To show O(1) is the best time complexity we give an example where it will finish in such a time complexity.
-Below is a best-case scenario example:
-1.	last_idx > 0
-2.	data[0] is valid, data[1] is valid (not missing)
-3.	The third valid data point immediately violates monotonicity:
-Example: data[0] = 1, data[1] = 2, data[2] = 0 (non-decreasing chosen, but data[2] < prev)
-What happens in this case:
-1.	Check last_idx == 0: constant time.
-2.	Find first valid j: j = 0 immediately, loop does 0 iterations.
-3.	Find second valid k: k = 1 immediately, loop does 0 iterations.
-4.	Determine direction: constant time.
-5.	Enter for-loop starting at i = 2:
-In this best case, the function performs a constant number of checks (a few if statements and comparisons), and exits after examining only the first 3 elements. Therefore, the time complexity is O(1), as it does not grow with the addition of new elements to the series.
+The new Time_Series is then loaded using Time_Series::load, which processes m data points, resulting in O(m) time. Finally, assigning the new series into the array calls deep copy assignment operator, which takes O(m) time.
+
+Combine these steps to get a worst-case runtime of O(N + m) for ADD_P2.
