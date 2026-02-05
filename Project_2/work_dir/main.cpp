@@ -24,6 +24,8 @@ int main(){
         } else if (input == "PRINT_P2"){
             std::cin >> series_code;
             country_data.printSeries(series_code);
+        } else if (input == "LIST_P2"){
+            country_data.listSeries();
         } else if (input == "ADD_P2"){
             std::cin >> series_code;
             std::cin >> year;

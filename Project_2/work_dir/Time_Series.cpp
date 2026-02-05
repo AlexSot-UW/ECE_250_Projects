@@ -25,7 +25,7 @@ Time_Series::Time_Series()
 * Input:       std::string: filename
 */
 void Time_Series::load(std::istringstream& input_line){
-    // Deletes array, and reinitializes all variables related to file size/capacity.
+    // Deletes array, and reinitializes all variables related to file size/capacity, to prevent memory leaks.
     delete[] years; 
     years = nullptr;
     delete[] data;
@@ -41,7 +41,7 @@ void Time_Series::load(std::istringstream& input_line){
     std::stringstream ss;
     std::string line;
 
-    // Reads first 2 entries of line.
+    // Reads first 2 entries of line, which contain the series name and the series code.
     std::getline(input_line, series_name, ',');
     // std::cout << series_name << std::endl;
     std::getline(input_line, series_code, ',');
@@ -53,12 +53,12 @@ void Time_Series::load(std::istringstream& input_line){
 
             double data_point = std::stod(ss.str());
 
+            // Reads the data from the csv and saves it in the series arrays (years/data).
             int year = FIRST_YEAR + last_idx;
             double datum;
             ss >> datum;
             addSeriesLoad(year, datum);
     }
-    // std::cout << series_code << std::endl;
 }
 
 /*
@@ -415,7 +415,7 @@ void Time_Series::resizeSeries(size_t& new_size){
         temp_data[i] = data[i];
     }
 
-    // Delete pointers to old arrays
+    // Delete pointers to old arrays to prevent memory leaks
     delete[] years;
     delete[] data;
 
@@ -460,44 +460,74 @@ int Time_Series::returnYearIdx(int year){
     return mid;
 }
 
+/*
+* Description: Returns the name of the series
+* Output:      std::string: Name of the series.
+*/
 std::string Time_Series::getSeriesName(){
     return series_name;
 }
 
+/*
+* Description: Returns the code of the series
+* Output:      std::string: Code of the series.
+*/
 std::string Time_Series::getSeriesCode(){
     return series_code;
 }
 
+/*
+* Description: Returns the array capacity.
+* Output:      size_t: Array size (capacity).
+*/
 std::size_t Time_Series::getArraySize(){
     return array_size;
 }
 
+/*
+* Description: Returns the series size.
+* Output:      size_t: last_idx (last_idx aka series size).
+*/
 unsigned int Time_Series::getLastIdx(){
     return last_idx;
 }  
 
+/*
+* Description: Checks if series has valid data or not.
+* Output:      bool: flag that shows if series has valid data or not.
+*/
 bool Time_Series::hasValidData(){
+    // For loop, loops until valid data is found and returns true, otherwise, if no valid data found, returns false.
     for (unsigned int i = 0; i < last_idx; i++){
-        if (last_idx != MISSING_DATA_INDICATOR){
+        if (data[i] != MISSING_DATA_INDICATOR){
             return true;
         }
     }
     return false;
 }
 
+/*
+* Description: Assignment operator which copies over object attributes into new object.
+* Input:       Time_Series&: Reference to other object, of this class type.
+*/
 Time_Series& Time_Series::operator=(const Time_Series& other){
+
+    // If they are already equal, return this same object.
     if (this == &other) {
         return *this;
     }
 
+    // Copies over all the class attributes/variables
     series_name = other.series_name;
     series_code = other.series_code;
     array_size  = other.array_size;
     last_idx    = other.last_idx;
 
+    // Creates new series arrays and sets them to nullptr.
     int* new_years = nullptr;
     double* new_data = nullptr;
 
+    // If other array is not empty, then copy over the values from the other array into the new one.
     if (other.array_size > 0) {
         new_years = new int[other.array_size];
         new_data  = new double[other.array_size];
@@ -508,12 +538,15 @@ Time_Series& Time_Series::operator=(const Time_Series& other){
         }
     }
 
+    // Delete references to old arrays to prevent memory leaks
     delete[] years;
     delete[] data;
 
+    // Set old array equal to new array (temp arrays).
     years = new_years;
     data  = new_data;
 
+    // Return pointer to this.
     return *this;
 }
 
